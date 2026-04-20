@@ -49,6 +49,92 @@ document.addEventListener('scroll', () => {
 
 const contactForm = document.getElementById('contactForm');
 
+// Capture location and device info
+function captureFormMetadata() {
+    // Device/Browser Info
+    const deviceInfo = {
+        browser: getBrowserInfo(),
+        os: getOSInfo(),
+        screen: `${window.screen.width}x${window.screen.height}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language
+    };
+    document.getElementById('deviceField').value = JSON.stringify(deviceInfo);
+
+    // Submission Time (EST)
+    const now = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    document.getElementById('timeField').value = now;
+
+    // Referrer
+    document.getElementById('referrerField').value = document.referrer || 'Direct';
+
+    // Geolocation (if permitted)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const location = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: `${position.coords.accuracy.toFixed(0)}m`
+                };
+                document.getElementById('locationField').value = JSON.stringify(location);
+            },
+            () => {
+                // User denied location - use IP geolocation fallback
+                fetchIPLocation();
+            }
+        );
+    } else {
+        fetchIPLocation();
+    }
+}
+
+// Get browser information
+function getBrowserInfo() {
+    const ua = navigator.userAgent;
+    if (ua.indexOf('Firefox') > -1) return 'Firefox';
+    if (ua.indexOf('Chrome') > -1) return 'Chrome';
+    if (ua.indexOf('Safari') > -1) return 'Safari';
+    if (ua.indexOf('Edge') > -1) return 'Edge';
+    if (ua.indexOf('MSIE') > -1 || ua.indexOf('Trident/') > -1) return 'Internet Explorer';
+    return 'Unknown';
+}
+
+// Get OS information
+function getOSInfo() {
+    const ua = navigator.userAgent;
+    if (ua.indexOf('Win') > -1) return 'Windows';
+    if (ua.indexOf('Mac') > -1) return 'macOS';
+    if (ua.indexOf('Linux') > -1) return 'Linux';
+    if (ua.indexOf('Android') > -1) return 'Android';
+    if (ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) return 'iOS';
+    return 'Unknown';
+}
+
+// Fallback: Get location from IP
+function fetchIPLocation() {
+    fetch('https://ipapi.co/json/')
+        .then(response => response.json())
+        .then(data => {
+            const location = {
+                city: data.city,
+                region: data.region,
+                country: data.country_name,
+                latitude: data.latitude,
+                longitude: data.longitude
+            };
+            document.getElementById('locationField').value = JSON.stringify(location);
+        })
+        .catch(() => {
+            document.getElementById('locationField').value = 'Location not available';
+        });
+}
+
+// Initialize metadata capture on page load
+window.addEventListener('load', () => {
+    setTimeout(captureFormMetadata, 500);
+});
+
 // Validate form before Formspree submission
 contactForm.addEventListener('submit', (e) => {
     const formData = {
