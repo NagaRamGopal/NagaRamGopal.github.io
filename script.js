@@ -49,17 +49,17 @@ document.addEventListener('scroll', () => {
 
 const contactForm = document.getElementById('contactForm');
 
+// Validate form before Formspree submission
 contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
     const formData = {
-        name: contactForm.querySelector('input[type="text"]').value,
-        email: contactForm.querySelector('input[type="email"]').value,
-        message: contactForm.querySelector('textarea').value
+        name: contactForm.querySelector('input[name="name"]').value,
+        email: contactForm.querySelector('input[name="email"]').value,
+        message: contactForm.querySelector('textarea[name="message"]').value
     };
 
     // Validate form
     if (!formData.name || !formData.email || !formData.message) {
+        e.preventDefault();
         showNotification('Please fill in all fields', 'error');
         return;
     }
@@ -67,22 +67,15 @@ contactForm.addEventListener('submit', (e) => {
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
+        e.preventDefault();
         showNotification('Please enter a valid email address', 'error');
         return;
     }
 
-    // Simulate form submission
+    // Update button while submitting
     const submitBtn = contactForm.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Sending...';
     submitBtn.disabled = true;
-
-    setTimeout(() => {
-        showNotification('Message sent successfully! I will get back to you soon.', 'success');
-        contactForm.reset();
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }, 1500);
 });
 
 /* ===========================
